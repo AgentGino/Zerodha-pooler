@@ -1,0 +1,12 @@
+go.sum
+*.log
+*.duckdb
+*.csv
+*.json
+*.txt
+*.log
+*.log.*
+*.log.*.*
+*.log.*.*.*
+*.sh
+.DS_Store

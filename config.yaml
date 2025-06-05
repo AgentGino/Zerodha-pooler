@@ -1,0 +1,72 @@
+api_key: 
+api_secret: 
+access_token: 
+instruments:
+    - ONGC
+    - PAGEIND
+    - PATANJALI
+    - PAYTM
+    - PEL
+    - PERSISTENT
+    - PETRONET
+    - PFC
+    - PHOENIXLTD
+    - PIDILITIND
+    - PIIND
+    - PNB
+    - PNBHOUSING
+    - POLICYBZR
+    - POLYCAB
+    - POONAWALLA
+    - POWERGRID
+    - PRESTIGE
+    - RAMCOCEM
+    - RBLBANK
+    - RECLTD
+    - RELIANCE
+    - SAIL
+    - SBICARD
+    - SBILIFE
+    - SBIN
+    - SHREECEM
+    - SHRIRAMFIN
+    - SIEMENS
+    - SJVN
+    - SOLARINDS
+    - SONACOMS
+    - SRF
+    - SUNPHARMA
+    - SUPREMEIND
+    - SYNGENE
+    - TATACHEM
+    - TATACOMM
+    - TATACONSUM
+    - TATAELXSI
+    - TATAMOTORS
+    - TATAPOWER
+    - TATASTEEL
+    - TATATECH
+    - TCS
+    - TECHM
+    - TIINDIA
+    - TITAGARH
+    - TITAN
+    - TORNTPHARM
+    - TORNTPOWER
+    - TRENT
+    - TVSMOTOR
+    - ULTRACEMCO
+    - UNIONBANK
+    - UNITDSPR
+    - UPL
+    - VBL
+    - VEDL
+    - VOLTAS
+    - WIPRO
+    - YESBANK
+    - ZYDUSLIFE
+from_date: "2015-04-29"
+to_date: "2025-05-02"
+interval: minute
+duckdb_path: market_data_minute_new.duckdb
+log_file: kite_fetcher.log
