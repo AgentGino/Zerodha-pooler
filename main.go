@@ -20,6 +20,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Zerodha API Limits
+const (
+	// Rate limiting
+	RATE_LIMIT_REQUESTS_PER_SECOND = 3
+	RATE_LIMIT_BURST               = 1 // burst 1 per second
+
+	// Data window limits
+	INTRADAY_MAX_DAYS = 60   // Max days per request for minute/intraday data
+	DAILY_CHUNK_DAYS  = 2000 // Chunk size for daily+ data (5 year)
+
+	// Candle limits (approximate)
+	MAX_CANDLES_PER_REQUEST = 22500 // ~22,500 candles for 1-min data over 60 trading days
+
+	// Other limits
+	INSTRUMENTS_PER_REQUEST = 1 // Only 1 instrument per API call
+)
+
 type Config struct {
 	APIKey      string   `yaml:"api_key"`
 	APISecret   string   `yaml:"api_secret"`
@@ -165,15 +182,10 @@ func generateDateChunks(from, to time.Time, interval string) [][2]time.Time {
 	var chunkSize time.Duration
 
 	if intervalMinutes >= 1440 { // Daily or larger
-		chunkSize = 365 * 24 * time.Hour // 1 year chunks for daily data
+		chunkSize = DAILY_CHUNK_DAYS * 24 * time.Hour // Use constant for daily data
 	} else {
-		// Calculate safe chunk size to stay under 10k candles
-		candlesPerDay := 1440 / intervalMinutes
-		maxDays := 10000 / candlesPerDay
-		if maxDays < 1 {
-			maxDays = 1
-		}
-		chunkSize = time.Duration(maxDays*24) * time.Hour
+		// For intraday intervals: Use constant for max days per request
+		chunkSize = INTRADAY_MAX_DAYS * 24 * time.Hour
 	}
 
 	var chunks [][2]time.Time
@@ -290,10 +302,87 @@ func main() {
 	logger.Printf("Successfully fetched and mapped %d instruments.", len(instrumentsList))
 
 	// Set up rate limiter (now accounts for multiple requests per instrument)
-	limiter := rate.NewLimiter(3, 1) // 3 req/sec, burst 1
+	limiter := rate.NewLimiter(RATE_LIMIT_REQUESTS_PER_SECOND, RATE_LIMIT_BURST)
 
 	from, _ := time.Parse("2006-01-02", conf.FromDate)
 	to, _ := time.Parse("2006-01-02", conf.ToDate)
+
+	// Calculate total API calls and estimate time
+	totalAPICalls := 0
+	validInstruments := 0
+
+	logger.Println("📊 Calculating API calls needed...")
+	for _, instrumentSymbol := range conf.Instruments {
+		_, ok := instrumentTokenMap[instrumentSymbol]
+		if !ok {
+			logger.Printf("⚠️  %s not found in instrument list. Will skip.", instrumentSymbol)
+			continue
+		}
+		validInstruments++
+		chunks := generateDateChunks(from, to, conf.Interval)
+		totalAPICalls += len(chunks)
+		logger.Printf("  \\_ %s: %d chunks needed", instrumentSymbol, len(chunks))
+	}
+
+	if validInstruments == 0 {
+		logger.Fatalf("❌ No valid instruments found to process!")
+	}
+
+	estimatedTimeSeconds := float64(totalAPICalls) / float64(RATE_LIMIT_REQUESTS_PER_SECOND) // Use constant for rate limit
+	estimatedMinutes := int(estimatedTimeSeconds / 60)
+	estimatedRemainingSeconds := int(estimatedTimeSeconds) % 60
+
+	// Explain chunking strategy
+	intervalMinutes := parseIntervalMinutes(conf.Interval)
+	var chunkExplanation string
+	var chunkSizeInfo string
+
+	if intervalMinutes >= 1440 { // Daily or larger
+		chunkSizeInfo = fmt.Sprintf("%d days per chunk", DAILY_CHUNK_DAYS)
+		chunkExplanation = "Daily+ intervals: Zerodha allows multiple years per request"
+	} else {
+		chunkSizeInfo = fmt.Sprintf("%d days per chunk", INTRADAY_MAX_DAYS)
+		chunkExplanation = fmt.Sprintf("Intraday intervals: Zerodha limit is %d days per request (~%d candles max)",
+			INTRADAY_MAX_DAYS, MAX_CANDLES_PER_REQUEST)
+	}
+
+	// Display summary and ask for confirmation
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Println("📈 DATA FETCHING PLAN")
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Printf("🎯 Valid instruments: %d\n", validInstruments)
+	fmt.Printf("📅 Date range: %s to %s\n", conf.FromDate, conf.ToDate)
+	fmt.Printf("⏱️  Interval: %s\n", conf.Interval)
+	fmt.Println()
+	fmt.Println("🧩 CHUNKING STRATEGY:")
+	fmt.Printf("  • API Rate Limit: %d requests/second globally\n", RATE_LIMIT_REQUESTS_PER_SECOND)
+	fmt.Printf("  • Window Limit: %s\n", chunkExplanation)
+	fmt.Printf("  • Chunk size: %s\n", chunkSizeInfo)
+	fmt.Printf("  • Instrument limit: %d per request\n", INSTRUMENTS_PER_REQUEST)
+	fmt.Printf("  • Result: %d total chunks across all instruments\n", totalAPICalls)
+	fmt.Println()
+	fmt.Printf("📡 Total API calls needed: %d\n", totalAPICalls)
+	if estimatedMinutes > 0 {
+		fmt.Printf("⏳ Estimated time: ~%d minutes %d seconds\n", estimatedMinutes, estimatedRemainingSeconds)
+	} else {
+		fmt.Printf("⏳ Estimated time: ~%d seconds\n", estimatedRemainingSeconds)
+	}
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Print("Do you want to proceed? (y/N): ")
+
+	reader := bufio.NewReader(os.Stdin)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		logger.Fatalf("Failed to read user input: %v", err)
+	}
+	response = strings.TrimSpace(strings.ToLower(response))
+
+	if response != "y" && response != "yes" {
+		logger.Println("❌ Operation cancelled by user.")
+		return
+	}
+
+	logger.Printf("✅ User confirmed. Starting to fetch data for %d instruments...", validInstruments)
 
 	totalInstruments := len(conf.Instruments)
 	for i, instrumentSymbol := range conf.Instruments {
