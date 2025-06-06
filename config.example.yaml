@@ -1,0 +1,47 @@
+# Zerodha Kite API Configuration
+api_key: "your_api_key_here"
+api_secret: "your_api_secret_here"
+access_token: ""  # Will be populated automatically after first login
+
+# Instruments to fetch data for
+instruments:
+  - "SBIN"
+  - "RELIANCE"
+  - "TCS"
+
+# Date range
+from_date: "2024-01-01"
+to_date: "2024-01-31"
+
+# Data interval (minute, 3minute, 5minute, 10minute, 15minute, 30minute, 60minute, day)
+interval: "minute"
+
+# Storage configuration
+# Options: "duckdb", "sqlite", "json", "csv"
+storage_type: "duckdb"
+
+# Storage path
+# For databases (duckdb/sqlite): path to database file
+# For files (json/csv): path to directory where files will be stored (one file per instrument)
+storage_path: "market_data.duckdb"
+
+# Examples for different storage types:
+# 
+# DuckDB (default, fast analytical queries):
+# storage_type: "duckdb"
+# storage_path: "market_data.duckdb"
+#
+# SQLite (compatible with most tools):
+# storage_type: "sqlite"  
+# storage_path: "market_data.sqlite"
+#
+# JSON (human readable, one file per instrument):
+# storage_type: "json"
+# storage_path: "data/json"
+#
+# CSV (Excel compatible, one file per instrument):
+# storage_type: "csv"
+# storage_path: "data/csv"
+
+# Log file
+log_file: "kite_fetcher.log" 

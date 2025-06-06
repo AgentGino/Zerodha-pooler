@@ -1,0 +1,10 @@
+api_key: ""
+api_secret: "valid_secret"
+access_token: ""
+instruments: []
+from_date: "2025-01-01"
+to_date: "2024-01-01"
+interval: "invalid-interval"
+storage_type: "invalid-storage"
+storage_path: ""
+log_file: "" 
