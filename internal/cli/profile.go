@@ -8,6 +8,7 @@ import (
 	"zerodha-connect/internal/config"
 	"zerodha-connect/internal/kite"
 	"zerodha-connect/internal/logger"
+	"zerodha-connect/internal/ui"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -63,10 +64,29 @@ func runProfile(cmd *cobra.Command, args []string) error {
 
 	fmt.Println("👤 Fetching user profile...")
 
-	// Initialize Kite client
-	kiteClient := kite.NewClient(conf, appLogger)
-	if err := kiteClient.Authenticate(); err != nil {
-		return fmt.Errorf("authentication failed: %v", err)
+	// Initialize Kite client with the config file path
+	kiteClient := kite.NewClientWithConfigPath(conf, appLogger, configFile)
+
+	// Use the new authentication method with token validation
+	err = kiteClient.AuthenticateWithTokenValidation()
+	if err != nil {
+		// Check if it's an authentication error with expired token
+		if authErr, ok := err.(*kite.AuthenticationError); ok && authErr.Type == kite.AuthErrorTokenExpired {
+			// Ask user if they want to start auth process
+			if !ui.ConfirmAuthRestart() {
+				fmt.Println("❌ Authentication cancelled by user")
+				return nil
+			}
+
+			// Clear the expired token and start fresh auth flow
+			conf.AccessToken = ""
+			err = kiteClient.Authenticate()
+			if err != nil {
+				return fmt.Errorf("authentication failed: %v", err)
+			}
+		} else {
+			return fmt.Errorf("authentication failed: %v", err)
+		}
 	}
 
 	// Fetch user profile

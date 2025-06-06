@@ -104,3 +104,30 @@ func ConfirmExecution(plan FetchPlan) bool {
 
 	return response == "y" || response == "yes"
 }
+
+// ConfirmAuthRestart asks the user if they want to restart the authentication process
+func ConfirmAuthRestart() bool {
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Println("🚨 AUTHENTICATION PROBLEM")
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Println("❌ Your access token appears to be expired or invalid.")
+	fmt.Println("🔑 API key and secret are present in your configuration.")
+	fmt.Println("")
+	fmt.Println("To proceed, you need to start the authentication process again.")
+	fmt.Println("This will:")
+	fmt.Println("  • Open your browser for Zerodha login")
+	fmt.Println("  • Generate a new access token")
+	fmt.Println("  • Save the new token to your config file")
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Print("Do you want to start the authentication process? (y/N): ")
+
+	reader := bufio.NewReader(os.Stdin)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Printf("Failed to read user input: %v\n", err)
+		return false
+	}
+	response = strings.TrimSpace(strings.ToLower(response))
+
+	return response == "y" || response == "yes"
+}

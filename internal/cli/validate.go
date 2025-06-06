@@ -74,14 +74,14 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	fmt.Println("   ✅ Storage: Ready")
 
 	// Test API
-	if err := testAPI(conf, tempLogger); err != nil {
+	if err := testAPI(conf, tempLogger, configFile); err != nil {
 		fmt.Printf("   ❌ API: %v\n", err)
 		return fmt.Errorf("API test failed")
 	}
 	fmt.Println("   ✅ API: Connected")
 
 	// Test instruments
-	validCount, totalCount, err := testInstruments(conf, tempLogger)
+	validCount, totalCount, err := testInstruments(conf, tempLogger, configFile)
 	if err != nil {
 		fmt.Printf("   ❌ Instruments: %v\n", err)
 		return fmt.Errorf("instrument test failed")
@@ -212,16 +212,16 @@ func testStorage(conf *config.Config, logger *log.Logger) error {
 	return nil
 }
 
-func testAPI(conf *config.Config, logger *log.Logger) error {
-	kiteClient := kite.NewClient(conf, logger)
+func testAPI(conf *config.Config, logger *log.Logger, configPath string) error {
+	kiteClient := kite.NewClientWithConfigPath(conf, logger, configPath)
 	if err := kiteClient.Authenticate(); err != nil {
 		return fmt.Errorf("authentication failed")
 	}
 	return nil
 }
 
-func testInstruments(conf *config.Config, logger *log.Logger) (int, int, error) {
-	kiteClient := kite.NewClient(conf, logger)
+func testInstruments(conf *config.Config, logger *log.Logger, configPath string) (int, int, error) {
+	kiteClient := kite.NewClientWithConfigPath(conf, logger, configPath)
 	if err := kiteClient.Authenticate(); err != nil {
 		return 0, 0, err
 	}

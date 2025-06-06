@@ -137,7 +137,7 @@ func runFetchInstruments(cmd *cobra.Command, args []string) error {
 	fmt.Println("📦 Downloading instruments...")
 
 	// Initialize Kite client
-	kiteClient := kite.NewClient(tempConfig, appLogger)
+	kiteClient := kite.NewClientWithConfigPath(tempConfig, appLogger, configFile)
 	if err := kiteClient.Authenticate(); err != nil {
 		return fmt.Errorf("authentication failed: %v", err)
 	}
@@ -213,7 +213,7 @@ func runFetchData(cmd *cobra.Command, args []string) error {
 	fmt.Println("🚀 Starting market data fetch...")
 
 	// Services Initialization
-	kiteClient := kite.NewClient(conf, appLogger)
+	kiteClient := kite.NewClientWithConfigPath(conf, appLogger, configPath)
 	if err := kiteClient.Authenticate(); err != nil {
 		return fmt.Errorf("authentication failed: %v", err)
 	}
