@@ -79,7 +79,7 @@ func runProfile(cmd *cobra.Command, args []string) error {
 			}
 
 			// Clear the expired token and start fresh auth flow
-			conf.AccessToken = ""
+			conf.RequestToken = ""
 			err = kiteClient.Authenticate()
 			if err != nil {
 				return fmt.Errorf("authentication failed: %v", err)

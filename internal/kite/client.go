@@ -64,13 +64,13 @@ func (c *Client) getConfigPath() string {
 
 // Authenticate handles the full authentication flow.
 func (c *Client) Authenticate() error {
-	if c.conf.AccessToken != "" {
-		c.logger.Println("✅ Access token found in config. Proceeding...")
-		c.kc.SetAccessToken(c.conf.AccessToken)
+	if c.conf.RequestToken != "" {
+		c.logger.Println("✅ Request token found in config. Proceeding...")
+		c.kc.SetAccessToken(c.conf.RequestToken)
 		return nil
 	}
 
-	c.logger.Println("🔐 No access token found. Starting authentication flow...")
+	c.logger.Println("🔐 No request token found. Starting authentication flow...")
 
 	if c.conf.APIKey == "" || c.conf.APISecret == "" {
 		return fmt.Errorf("API key and API secret are required for authentication")
@@ -95,22 +95,22 @@ func (c *Client) Authenticate() error {
 		return fmt.Errorf("failed to generate session: %v", err)
 	}
 
-	c.conf.AccessToken = data.AccessToken
+	c.conf.RequestToken = data.AccessToken
 	configPath := c.getConfigPath()
 	if err := config.Save(configPath, c.conf); err != nil {
-		return fmt.Errorf("failed to save access token to config: %v", err)
+		return fmt.Errorf("failed to save request token to config: %v", err)
 	}
 
-	c.kc.SetAccessToken(c.conf.AccessToken)
-	c.logger.Printf("✅ Authentication successful! Access token saved to %s", configPath)
+	c.kc.SetAccessToken(c.conf.RequestToken)
+	c.logger.Printf("✅ Authentication successful! Request token saved to %s", configPath)
 	return nil
 }
 
 // AuthenticateWithTokenValidation handles authentication with proper token validation
 func (c *Client) AuthenticateWithTokenValidation() error {
-	if c.conf.AccessToken != "" {
-		c.logger.Println("✅ Access token found in config. Validating...")
-		c.kc.SetAccessToken(c.conf.AccessToken)
+	if c.conf.RequestToken != "" {
+		c.logger.Println("✅ Request token found in config. Validating...")
+		c.kc.SetAccessToken(c.conf.RequestToken)
 
 		// Test the token by making a simple API call
 		if err := c.limiter.Wait(context.Background()); err != nil {
@@ -119,25 +119,25 @@ func (c *Client) AuthenticateWithTokenValidation() error {
 
 		_, err := c.kc.GetUserProfile()
 		if err != nil {
-			// Access token is present but invalid/expired
+			// Request token is present but invalid/expired
 			return &AuthenticationError{
 				Type:    AuthErrorTokenExpired,
-				Message: "Access token appears to be expired or invalid",
+				Message: "Request token appears to be expired or invalid",
 				Cause:   err,
 			}
 		}
 
-		c.logger.Println("✅ Access token is valid")
+		c.logger.Println("✅ Request token is valid")
 		return nil
 	}
 
-	// No access token present - start auth flow
+	// No request token present - start auth flow
 	return c.startAuthenticationFlow()
 }
 
 // startAuthenticationFlow handles the OAuth flow
 func (c *Client) startAuthenticationFlow() error {
-	c.logger.Println("🔐 No access token found. Starting authentication flow...")
+	c.logger.Println("🔐 No request token found. Starting authentication flow...")
 
 	if c.conf.APIKey == "" || c.conf.APISecret == "" {
 		return fmt.Errorf("API key and API secret are required for authentication")
@@ -162,14 +162,14 @@ func (c *Client) startAuthenticationFlow() error {
 		return fmt.Errorf("failed to generate session: %v", err)
 	}
 
-	c.conf.AccessToken = data.AccessToken
+	c.conf.RequestToken = data.AccessToken
 	configPath := c.getConfigPath()
 	if err := config.Save(configPath, c.conf); err != nil {
-		return fmt.Errorf("failed to save access token to config: %v", err)
+		return fmt.Errorf("failed to save request token to config: %v", err)
 	}
 
-	c.kc.SetAccessToken(c.conf.AccessToken)
-	c.logger.Printf("✅ Authentication successful! Access token saved to %s", configPath)
+	c.kc.SetAccessToken(c.conf.RequestToken)
+	c.logger.Printf("✅ Authentication successful! Request token saved to %s", configPath)
 	return nil
 }
 

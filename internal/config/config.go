@@ -12,16 +12,16 @@ import (
 
 // Config holds all the configuration for the application.
 type Config struct {
-	APIKey      string   `yaml:"api_key"`
-	APISecret   string   `yaml:"api_secret"`
-	AccessToken string   `yaml:"access_token"`
-	Instruments []string `yaml:"instruments"`
-	FromDate    string   `yaml:"from_date"`
-	ToDate      string   `yaml:"to_date"`
-	Interval    string   `yaml:"interval"`
-	StorageType string   `yaml:"storage_type"` // "duckdb", "sqlite", "json", "csv"
-	StoragePath string   `yaml:"storage_path"` // Path to database file or directory for files
-	LogFile     string   `yaml:"log_file"`
+	APIKey       string   `yaml:"api_key"`
+	APISecret    string   `yaml:"api_secret"`
+	RequestToken string   `yaml:"request_token"`
+	Instruments  []string `yaml:"instruments"`
+	FromDate     string   `yaml:"from_date"`
+	ToDate       string   `yaml:"to_date"`
+	Interval     string   `yaml:"interval"`
+	StorageType  string   `yaml:"storage_type"` // "duckdb", "sqlite", "json", "csv"
+	StoragePath  string   `yaml:"storage_path"` // Path to database file or directory for files
+	LogFile      string   `yaml:"log_file"`
 
 	// Deprecated: Use StoragePath instead
 	DuckDBPath string `yaml:"duckdb_path,omitempty"`
