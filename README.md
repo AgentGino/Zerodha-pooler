@@ -1,6 +1,6 @@
 # Zerodha Connect
 
-A high-performance, enterprise-grade market data fetcher for the Zerodha Kite API with support for multiple storage backends.
+A high-performance, Indian stock market data fetcher for the Zerodha Kite API with support for multiple storage backends.
 
 ## Features
 
