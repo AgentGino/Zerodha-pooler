@@ -349,7 +349,7 @@ This performs comprehensive checks and provides detailed error messages for:
 
 ## License
 
-[Your License Here]
+MIT
 
 ## Contributing
 
